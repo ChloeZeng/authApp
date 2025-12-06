@@ -8,7 +8,11 @@ const bodyParser = require('body-parser');
 const expressSession = require('express-session')({
     secret: 'secret',
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: true,
+    cookie: {
+        secure: false,
+        maxAge: 60000
+    }
 });
 
 app.use(bodyParser.json());
@@ -51,14 +55,26 @@ passport.serializeUser(UserDetails.serializeUser());
 passport.deserializeUser(UserDetails.deserializeUser());
 
 
-/* REGISTER USER ONCE */
-UserDetails.findOne({ username: 'paul' }).then(user => {
-    if (!user) {
-        UserDetails.register({ username: 'paul' }, 'paul')
-            .then(() => console.log("Registered paul"))
-            .catch(err => console.log(err));
-    }
+/* REGISTER USERS ONCE */
+
+const usersToRegister = [
+    { username: 'paul', password: 'paul' },
+    { username: 'joy',  password: 'joy'  },
+    { username: 'ray',  password: 'ray'  }
+];
+
+usersToRegister.forEach(({ username, password }) => {
+    UserDetails.findOne({ username }).then(user => {
+        if (!user) {
+            UserDetails.register({ username }, password)
+                .then(() => console.log(`Registered ${username}`))
+                .catch(err => console.log(err));
+        } else {
+            console.log(`${username} already exists`);
+        }
+    });
 });
+
 
 /*  ROUTES  */
 
